@@ -129,3 +129,14 @@ subnet 192.168.1.0 netmask 255.255.255.0 {
 }' | sudo tee -a /etc/dhcp/dhcpd.conf
 
 sudo sed -i '21s/.*/INTERFACES="eth0"/' /etc/dhcp/dhcpd.conf
+
+
+
+# ================================================
+# DOMAIN CONTROLLER REQUIREMENTS
+# ================================================
+sudo apt-get install git-core python-dev libacl1-dev libblkid-dev
+sudo apt-get install build-essential libacl1-dev libattr1-dev \
+libblkid-dev libreadline-dev python-dev \
+python-dnspython gdb pkg-config libpopt-dev libldap2-dev \
+dnsutils libbsd-dev attr krb5-user docbook-xsl
