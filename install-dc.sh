@@ -143,9 +143,20 @@ dnsutils libbsd-dev attr krb5-user docbook-xsl
 sudo apt-get install winbind samba libnss-winbind libpam-winbind krb5-config krb5-locales krb5-user
 
 
+
 # ================================================
 # SAMBA4 / DOMAIN PROVISIONING
 # ================================================
 sudo apt-get install samba smbclient
 sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
 sudo samba-tool domain provision --option="interfaces=lo eth0" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
+
+
+
+# ================================================
+# KERBEROS
+# ================================================
+cd /etc
+sudo cp /var/lib/samba/private/krb5.conf ./
+
+kinit administrator@VFRONTIERS.NET
