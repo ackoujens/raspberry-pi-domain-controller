@@ -91,3 +91,16 @@ ff02::2         ip6-allrouters
 
 127.0.1.1       dc1.volvovalorvlogs.com dc1
 ' | sudo tee /etc/hosts
+
+
+
+# ================================================
+# DNS
+# ================================================
+sudo rm /etc/resolv.conf
+sudo touch /etc/resolv.conf
+echo 'domain volvovalorvlogs.com
+search volvovalorvlogs.com
+nameserver 192.168.1.200
+nameserver 192.168.1.1' | sudo tee /etc/resolv.conf
+sudo chattr +i /etc/resolv.conf
