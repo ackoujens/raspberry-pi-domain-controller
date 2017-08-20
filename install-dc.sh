@@ -59,4 +59,17 @@ ______                      _         _____             _             _ _
 # ================================================
 # PROMPT TEST
 # ================================================
-_info '- Testing info prompt'
+_info ' - Testing info prompt '
+
+
+
+# ================================================
+# STATIC IP ADDRESS
+# ================================================
+echo '
+# Static IP
+interface eth0
+static routers=192.168.1.1
+static domain_name_servers=192.168.1.200 192.168.1.1
+static ip_address=192.168.1.200
+static domain_search=volvovalorvlogs.com' >> /etc/dhcpcd.conf
