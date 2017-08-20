@@ -1,3 +1,17 @@
+#!/bin/bash
+
+# Raspberry Pi Raspbian Domain Controller
+# Author: Jens Ackou
+
+
+
+# ================================================
+# SCRIPT SETUP
+# ================================================
+
+# Quit on error
+set -e
+
 # Horizontal line
 _hLine="------------------------------------------------------------------------------------"
 
