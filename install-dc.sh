@@ -73,3 +73,21 @@ static routers=192.168.1.1
 static domain_name_servers=192.168.1.200 192.168.1.1
 static ip_address=192.168.1.200
 static domain_search=volvovalorvlogs.com' >> /etc/dhcpcd.conf
+
+
+
+# ================================================
+# HOSTNAME
+# ================================================
+sudo rm /etc/hostname
+sudo touch /etc/hostname
+echo "dc1" | sudo tee /etc/hostname
+
+sudo rm /etc/hosts
+echo '127.0.0.1       localhost.localdomain localhost
+::1             localhost ip6-localhost ip6-loopback
+ff02::1         ip6-allnodes
+ff02::2         ip6-allrouters
+
+127.0.1.1       dc1.volvovalorvlogs.com dc1
+' | sudo tee /etc/hosts
