@@ -57,9 +57,10 @@ ______                      _         _____             _             _ _
 
 
 # ================================================
-# PROMPT TEST
+# UPDATE/UPGRADE
 # ================================================
-_info ' - Testing info prompt '
+sudo apt-get update
+sudo apt-get upgrade
 
 
 
