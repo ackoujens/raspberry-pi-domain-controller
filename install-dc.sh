@@ -105,3 +105,27 @@ search volvovalorvlogs.com
 nameserver 192.168.1.200
 nameserver 192.168.1.1' | sudo tee /etc/resolv.conf
 sudo chattr +i /etc/resolv.conf
+
+
+
+# ================================================
+# DHCP
+# ================================================
+sudo apt-get install isc-dhcp-server
+sudo sed -i '13s/.*/#option domain-name "example.org";/' /etc/dhcp/dhcpd.conf
+sudo sed -i '14s/.*/#option domain-name-servers ns1.example.org, ns2.example.org;/' /etc/dhcp/dhcpd.conf
+sudo sed -i '21s/.*/authoritative/' /etc/dhcp/dhcpd.conf
+
+echo '
+# Lease Pool
+subnet 192.168.1.0 netmask 255.255.255.0 {
+    range 192.168.1.201 192.168.1.250;
+    option broadcast-address 192.168.1.255;
+    option routers 192.168.1.254;
+    default-lease-time 600;
+    max-lease-time 7200;
+    option domain-name "local";
+    option domain-name-servers 192.168.1.254, 8.8.8.8;
+}' | sudo tee -a /etc/dhcp/dhcpd.conf
+
+sudo sed -i '21s/.*/INTERFACES="eth0"/' /etc/dhcp/dhcpd.conf
