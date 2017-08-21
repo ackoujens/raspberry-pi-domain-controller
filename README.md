@@ -8,6 +8,11 @@ Run the command below to run the script on your Raspbian install over ssh
 
 ## Features
 - Runs remotely from GitHub raw
+- DNS server
+- DHCP server
+- Samba4 domain provisioning
+- Kerberos authentication
 
 ## Todo
 - Domain controller functionality
+- Domain needs to be enforced in capital letters where needed
