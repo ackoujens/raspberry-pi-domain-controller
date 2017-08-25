@@ -13,7 +13,7 @@
 set -e
 
 # Introduction (Font: Doom)
-_info '
+echo '
 ____________ _
 | ___ \ ___ (_)
 | |_/ / |_/ /_
