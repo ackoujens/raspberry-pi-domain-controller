@@ -86,8 +86,8 @@ do_update() {
 # ================================================
 # NETWORK SETUP
 # ================================================
-HWADDR=`ifconfig eth0 | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
-IPADDR=`ifconfig eth0 | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
+HWADDR=`ifconfig enxb827eb3306a3 | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
+IPADDR=`ifconfig enxb827eb3306a3 | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
 ISDHCP=`grep dhcp /etc/network/interfaces | awk $'{print $4}'`
 GW=`ip route list | grep default | awk $'{print $3}'`
 
@@ -119,8 +119,8 @@ set_static_net(){
     echo "auto lo" > $interfaces_file
     echo "iface lo inet loopback" >> $interfaces_file
     echo ""  >> $interfaces_file
-    echo "auto eth0" >> $interfaces_file
-    echo "iface eth0 inet static" >> $interfaces_file
+    echo "auto enxb827eb3306a3" >> $interfaces_file
+    echo "iface enxb827eb3306a3 inet static" >> $interfaces_file
     echo "  address $1" >> $interfaces_file
     echo "  netmask $2" >> $interfaces_file
     echo "  gateway $3" >> $interfaces_file
@@ -186,7 +186,7 @@ do_dhcp() {
       option domain-name-servers 192.168.1.254, 8.8.8.8;
   }' | sudo tee -a /etc/dhcp/dhcpd.conf
 
-  sudo sed -i '21s/.*/INTERFACES="eth0"/' /etc/dhcp/dhcpd.conf
+  sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
 }
 
 
@@ -209,7 +209,7 @@ install_dc_req() {
 do_samba() {
   sudo apt-get install samba smbclient
   sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
-  sudo samba-tool domain provision --option="interfaces=lo eth0" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
+  sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
 }
 
 
