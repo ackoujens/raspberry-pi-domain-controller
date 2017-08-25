@@ -12,9 +12,6 @@
 # Quit on error
 set -e
 
-# Administrative privileges
-sudo -i
-
 # Introduction (Font: Doom)
 echo '
 ____________ _
@@ -108,13 +105,13 @@ interfaces_file="/etc/network/interfaces"
 
 set_hostname(){
     # set_hostname HOSTNAME DOMAINNAME
-    echo "$1" > $hostname_file
+    sudo bash -c 'echo "$1" > $hostname_file'
 
-    echo "127.0.0.1       localhost" > $hosts_file
-    echo "127.0.1.1       $1.$2     $1" >> $hosts_file
-    echo "::1             localhost ip6-localhost ip6-loopback" >> $hosts_file
-    echo "ff02::1         ip6-allnodes" >> $hosts_file
-    echo "ff02::2         ip6-allrouters" >> $hosts_file
+    sudo bash -c 'echo "127.0.0.1       localhost" > $hosts_file'
+    sudo bash -c 'echo "127.0.1.1       $1.$2     $1" >> $hosts_file'
+    sudo bash -c 'echo "::1             localhost ip6-localhost ip6-loopback" >> $hosts_file'
+    sudo bash -c 'echo "ff02::1         ip6-allnodes" >> $hosts_file'
+    sudo bash -c 'echo "ff02::2         ip6-allrouters" >> $hosts_file'
 }
 
 set_static_net(){
