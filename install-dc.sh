@@ -12,6 +12,9 @@
 # Quit on error
 set -e
 
+# Administrative privileges
+sudo -i
+
 # Introduction (Font: Doom)
 echo '
 ____________ _
