@@ -105,7 +105,7 @@ interfaces_file="/etc/network/interfaces"
 
 set_hostname(){
     # set_hostname HOSTNAME DOMAINNAME
-    sudo bash -c "echo "$1" > $hostname_file"
+    sudo bash -c "echo '$1' > $hostname_file"
 
     sudo bash -c "echo '127.0.0.1       localhost' > $hosts_file"
     sudo bash -c "echo '127.0.1.1       $1.$2     $1' >> $hosts_file"
@@ -116,14 +116,14 @@ set_hostname(){
 
 set_static_net(){
     # set_static_net IP SUBNET GATEWAY
-    echo "auto lo" > $interfaces_file
-    echo "iface lo inet loopback" >> $interfaces_file
-    echo ""  >> $interfaces_file
-    echo "auto enxb827eb3306a3" >> $interfaces_file
-    echo "iface enxb827eb3306a3 inet static" >> $interfaces_file
-    echo "  address $1" >> $interfaces_file
-    echo "  netmask $2" >> $interfaces_file
-    echo "  gateway $3" >> $interfaces_file
+    sudo bash -c "echo 'auto lo' > $interfaces_file"
+    sudo bash -c "echo 'iface lo inet loopback' >> $interfaces_file"
+    sudo bash -c "echo ''  >> $interfaces_file"
+    sudo bash -c "echo 'auto enxb827eb3306a3' >> $interfaces_file"
+    sudo bash -c "echo 'iface enxb827eb3306a3 inet static' >> $interfaces_file"
+    sudo bash -c "echo '  address $1' >> $interfaces_file"
+    sudo bash -c "echo '  netmask $2' >> $interfaces_file"
+    sudo bash -c "echo '  gateway $3' >> $interfaces_file"
 }
 
 set_dns_domain(){
@@ -142,7 +142,7 @@ do_network() {
   while [ -z $result ] || [ $result == "1" ] ; do
 
       while [[ -z $ip_result ]] || [[ $ip_result == "1" ]] ; do
-          ipaddr=$(whiptail --backtitle "Network Setup" --inputbox "IP Address" 10 60  3>&1 1>&2 2>&3)
+          ipaddr=$(whiptail --backtitle "Network Setup" --inputbox "IP Address" 10 60 "192.168.1.200" 3>&1 1>&2 2>&3)
           if ! [[ $ipaddr =~ $ip4 ]]; then
               whiptail --msgbox "Invalid IP!" 10 60
               ! true
@@ -151,9 +151,9 @@ do_network() {
       done
 
       netmask=$(whiptail --backtitle "Network Setup" --backtitle "Virtual Machine Network Setup" --inputbox "Network Mask" 10 60 "255.255.255.0" 3>&1 1>&2 2>&3)
-      gateway=$(whiptail --backtitle "Network Setup" --inputbox "Gateway" 10 60  3>&1 1>&2 2>&3)
-      dns1=$(whiptail --backtitle "Network Setup" --inputbox "DNS" 10 60  3>&1 1>&2 2>&3)
-      domain=$(whiptail --backtitle "Network Setup" --inputbox "Domain Name" 10 60 "adv.ru" 3>&1 1>&2 2>&3)
+      gateway=$(whiptail --backtitle "Network Setup" --inputbox "Gateway" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
+      dns1=$(whiptail --backtitle "Network Setup" --inputbox "DNS" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
+      domain=$(whiptail --backtitle "Network Setup" --inputbox "Domain Name" 10 60 "mydomain.ext" 3>&1 1>&2 2>&3)
       whiptail --backtitle "Network Setup" --title "Are the settings correct?" --yesno "\n IP Adress: $ipaddr \n Netmask: $netmask \n Gateway: $gateway \n DNS: $dns1 \n Domain: $domain \n" 18 78 3>&1 1>&2 2>&3
       result=$?
   done
