@@ -138,7 +138,7 @@ set_dns_domain(){
     sudo bash -c "echo 'nameserver $1' >> $dns_file"
 }
 
-do_network() {
+setup_network() {
   while [ -z $result ] || [ $result == "1" ] ; do
 
       while [[ -z $ip_result ]] || [[ $ip_result == "1" ]] ; do
@@ -158,7 +158,7 @@ do_network() {
       result=$?
   done
 }
-do_network
+setup_network
 set_hostname $hostn $domain
 set_static_net $ipaddr $netmask $gateway
 set_dns_domain $dns1 $domain
@@ -166,9 +166,9 @@ set_dns_domain $dns1 $domain
 
 
 # ================================================
-# DHCP
+# DHCP (TODO)
 # ================================================
-do_dhcp() {
+setup_dhcp_server() {
   sudo apt-get install isc-dhcp-server
   sudo sed -i '13s/.*/#option domain-name "example.org";/' /etc/dhcp/dhcpd.conf
   sudo sed -i '14s/.*/#option domain-name-servers ns1.example.org, ns2.example.org;/' /etc/dhcp/dhcpd.conf
@@ -190,6 +190,7 @@ do_dhcp() {
 }
 
 
+
 # ================================================
 # DOMAIN CONTROLLER REQUIREMENTS
 # ================================================
@@ -203,22 +204,35 @@ install_dc_req() {
 }
 
 
+
 # ================================================
-# SAMBA4 / DOMAIN PROVISIONING
+# SAMBA4 / DOMAIN PROVISIONING (TODO)
 # ================================================
-do_samba() {
+setup_samba() {
   sudo apt-get install samba smbclient
   sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
   sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
 }
 
 
+
 # ================================================
 # KERBEROS
 # ================================================
-do_kerberos() {
+setup_kerberos() {
   cd /etc
   sudo cp /var/lib/samba/private/krb5.conf ./
-
-  kinit administrator@VFRONTIERS.NET
 }
+
+
+
+# ================================================
+# TESTING
+# ================================================
+
+test() {
+  echo "PASSWORD TEST"
+  echo "Old pi password: " + $pipasswd1
+  echo "New pi password: " + $pipasswd2
+}
+test
