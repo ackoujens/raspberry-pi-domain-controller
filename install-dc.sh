@@ -234,5 +234,6 @@ test() {
   echo "PASSWORD TEST"
   echo "Old pi password: " + $pipasswd1
   echo "New pi password: " + $pipasswd2
+  echo $domain
 }
 test
