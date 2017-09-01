@@ -129,13 +129,13 @@ set_static_net(){
 set_dns_domain(){
     # set_dns_domain DNSSERVER DOMAINNAME
     if [ -z "$2" ] || [ "$2" = "adv.ru" ]; then
-        echo "domain adv.ru"  > $dns_file
-        echo "search adv.ru adv.local." >> $dns_file
+        sudo bash -c "echo 'domain adv.ru'  > $dns_file"
+        sudo bash -c "echo 'search adv.ru adv.local.' >> $dns_file"
     else
-        echo "domain $2"  > $dns_file
-        echo "search $2" >> $dns_file
+        sudo bash -c "echo 'domain $2'  > $dns_file"
+        sudo bash -c "echo 'search $2' >> $dns_file"
     fi
-    echo "nameserver $1" >> $dns_file
+    sudo bash -c "echo 'nameserver $1' >> $dns_file"
 }
 
 do_network() {
