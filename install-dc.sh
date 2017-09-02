@@ -35,7 +35,7 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 25 85
+whiptail --textbox whiptail_intro 25 86
 rm whiptail_intro
 
 
@@ -44,8 +44,8 @@ rm whiptail_intro
 # MENU SELECTION
 # ================================================
 main() {
-while true; do
-        menu=$(whiptail --title $TITLE --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
+  while true; do
+        menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
             "1" "Message Box" \
             3>&1 1>&2 2>&3)
 
@@ -273,4 +273,6 @@ test() {
 }
 echo $domain
 
+test
 main
+test
