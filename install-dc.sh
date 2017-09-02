@@ -20,14 +20,14 @@ function displayMessage() {
 }
 
 # Introduction (Font: Doom)
-echo '              ______                _     _
-              | ___ \              | |   (_)
-              | |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
-              |    // _` / __|  _ \|  _ \| |/ _` |  _ \
-              | |\ \ (_| \__ \ |_) | |_) | | (_| | | | |
-              \_| \_\__,_|___/ .__/|_.__/|_|\__,_|_| |_|
-                             | |
-                             |_|
+echo '                ______                _     _
+                | ___ \              | |   (_)
+                | |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
+                |    // _` / __|  _ \|  _ \| |/ _` |  _ \
+                | |\ \ (_| \__ \ |_) | |_) | | (_| | | | |
+                \_| \_\__,_|___/ .__/|_.__/|_|\__,_|_| |_|
+                               | |
+                               |_|
 ______                      _         _____             _             _ _
 |  _  \                    (_)       /  __ \           | |           | | |
 | | | |___  _ __ ___   __ _ _ _ __   | /  \/ ___  _ __ | |_ _ __ ___ | | | ___ _ __
@@ -46,18 +46,29 @@ rm whiptail_intro
 main() {
   while true; do
         menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
-            "1" "Message Box" \
+            "1" "Security" \
+            3>&1 1>&2 2>&3)
+        security=$(whiptail --title "Security" --ok-button "Select" --cancel-button "Back" --menu "Before going online, make sure your Pi locked shut and up to date." 20 78 10 \
+            "1" "Create a separate user account" \
+            "2" "Reset Pi password" \
             3>&1 1>&2 2>&3)
 
-        exitstatus=$?
 
+        exitstatus=$?
         if [ ${exitstatus} = 0 ]; then
             case ${menu} in
                 1)
-                    set_password_pi
+                  case ${security} in
+                    1)
+                      create_user
+                    ;;
+                    2)
+                      set_password_pi
+                    ;;
+                esac
                 ;;
-
             esac
+
         else
             exit
         fi
@@ -69,6 +80,10 @@ main() {
 # ================================================
 # SECURITY
 # ================================================
+create_user() {
+  echo "test"
+}
+
 set_password_pi() {
   while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
       pipasswd1=$(whiptail --passwordbox "Enter new password for pi:" 10 60 3>&1 1>&2 2>&3)
