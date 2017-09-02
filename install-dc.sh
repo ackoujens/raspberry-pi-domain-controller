@@ -37,10 +37,31 @@ ______                      _         _____             _             _ _
 
 '
 
+whiptail --title "Domain Controller" --infobox "____________ _
+| ___ \ ___ (_)
+| |_/ / |_/ /_
+|    /|  __/| |
+| |\ \| |   | |
+\_| \_\_|   |_|
+______                _     _
+| ___ \              | |   (_)
+| |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
+|    // _` / __|  _ \|  _ \| |/ _` |  _ \
+| |\ \ (_| \__ \ |_) | |_) | | (_| | | | |
+\_| \_\__,_|___/ .__/|_.__/|_|\__,_|_| |_|
+               | |
+               |_|
+______                      _         _____             _             _ _
+|  _  \                    (_)       /  __ \           | |           | | |
+| | | |___  _ __ ___   __ _ _ _ __   | /  \/ ___  _ __ | |_ _ __ ___ | | | ___ _ __
+| | | / _ \|  _ ` _ \ / _` | |  _ \  | |    / _ \|  _ \| __|  __/ _ \| | |/ _ \  __|
+| |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
+|___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
+" 8 78
 
 
 # ================================================
-# PASSWORD
+# SECURITY
 # ================================================
 set_password_pi() {
   while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
@@ -150,7 +171,7 @@ setup_network() {
           ip_result=$?
       done
 
-      netmask=$(whiptail --backtitle "Network Setup" --backtitle "Virtual Machine Network Setup" --inputbox "Network Mask" 10 60 "255.255.255.0" 3>&1 1>&2 2>&3)
+      netmask=$(whiptail --backtitle "Network Setup" --backtitle "Domain Controller Setup" --inputbox "Network Mask" 10 60 "255.255.255.0" 3>&1 1>&2 2>&3)
       gateway=$(whiptail --backtitle "Network Setup" --inputbox "Gateway" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
       dns1=$(whiptail --backtitle "Network Setup" --inputbox "DNS" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
       domain=$(whiptail --backtitle "Network Setup" --inputbox "Domain Name" 10 60 "mydomain.ext" 3>&1 1>&2 2>&3)
@@ -158,21 +179,29 @@ setup_network() {
       result=$?
   done
 }
-setup_network
-set_hostname $hostn $domain
-set_static_net $ipaddr $netmask $gateway
-set_dns_domain $dns1 $domain
+#setup_network
+#set_hostname $hostn $domain
+#set_static_net $ipaddr $netmask $gateway
+#set_dns_domain $dns1 $domain
 
 
 
 # ================================================
-# DHCP (TODO)
+# DHCP SERVER (TODO)
 # ================================================
-setup_dhcp_server() {
+install_dhcp_server() {
   sudo apt-get install isc-dhcp-server
-  sudo sed -i '13s/.*/#option domain-name "example.org";/' /etc/dhcp/dhcpd.conf
-  sudo sed -i '14s/.*/#option domain-name-servers ns1.example.org, ns2.example.org;/' /etc/dhcp/dhcpd.conf
-  sudo sed -i '21s/.*/authoritative/' /etc/dhcp/dhcpd.conf
+}
+
+setup_dhcp_server() {
+  #sudo sed -i '13s/.*/#option domain-name "example.org";/' /etc/dhcp/dhcpd.conf
+  #sudo sed -i '14s/.*/#option domain-name-servers ns1.example.org, ns2.example.org;/' /etc/dhcp/dhcpd.conf
+  #sudo sed -i '21s/.*/authoritative/' /etc/dhcp/dhcpd.conf
+
+  subnet=$(whiptail --backtitle "DHCP Server" --backtitle "Domain Controller Setup" --inputbox "Lease pool start" 10 60 "192.168.1.201" 3>&1 1>&2 2>&3)
+  netmask=$(whiptail --backtitle "DHCP Server" --backtitle "Domain Controller Setup" --inputbox "Lease pool start" 10 60 "192.168.1.201" 3>&1 1>&2 2>&3)
+  poolstart=$(whiptail --backtitle "DHCP Server" --backtitle "Domain Controller Setup" --inputbox "Lease pool start" 10 60 "192.168.1.201" 3>&1 1>&2 2>&3)
+  poolend=$(whiptail --backtitle "DHCP Server" --backtitle "Domain Controller Setup" --inputbox "Lease pool start" 10 60 "192.168.1.201" 3>&1 1>&2 2>&3)
 
   echo '
   # Lease Pool
@@ -186,9 +215,9 @@ setup_dhcp_server() {
       option domain-name-servers 192.168.1.254, 8.8.8.8;
   }' | sudo tee -a /etc/dhcp/dhcpd.conf
 
-  sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
+  #sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
 }
-
+setup_dhcp_server
 
 
 # ================================================
@@ -211,7 +240,7 @@ install_dc_req() {
 setup_samba() {
   sudo apt-get install samba smbclient
   sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
-  sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
+  #sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
 }
 
 
