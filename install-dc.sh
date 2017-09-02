@@ -32,8 +32,9 @@ ______                      _         _____             _             _ _
 ' > whiptail_intro
 whiptail --textbox whiptail_intro 14 84
 
-
-
+# Hold intro for 5 seconds
+whiptail --title "RPI Raspbian Domain Controller Setup" --infobox whiptail_intro 14 84
+sleep 5000
 
 # ================================================
 # SECURITY
