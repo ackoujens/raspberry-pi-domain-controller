@@ -8,33 +8,63 @@
 # ================================================
 # SCRIPT SETUP
 # ================================================
+# Global variables
+TITLE="RPi Raspbian Domain Controller"
 
 # Quit on error
 set -e
 
+# Display message
+function displayMessage() {
+    whiptail --title "$1" --msgbox "$2" 8 78
+}
+
 # Introduction (Font: Doom)
-echo '
-______                _     _
-| ___ \              | |   (_)
-| |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
-|    // _` / __|  _ \|  _ \| |/ _` |  _ \
-| |\ \ (_| \__ \ |_) | |_) | | (_| | | | |
-\_| \_\__,_|___/ .__/|_.__/|_|\__,_|_| |_|
-               | |
-               |_|
+echo '      ______                _     _
+      | ___ \              | |   (_)
+      | |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
+      |    // _` / __|  _ \|  _ \| |/ _` |  _ \
+      | |\ \ (_| \__ \ |_) | |_) | | (_| | | | |
+      \_| \_\__,_|___/ .__/|_.__/|_|\__,_|_| |_|
+                     | |
+                     |_|
 ______                      _         _____             _             _ _
 |  _  \                    (_)       /  __ \           | |           | | |
 | | | |___  _ __ ___   __ _ _ _ __   | /  \/ ___  _ __ | |_ _ __ ___ | | | ___ _ __
 | | | / _ \|  _ ` _ \ / _` | |  _ \  | |    / _ \|  _ \| __|  __/ _ \| | |/ _ \  __|
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
-
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 20 84
+whiptail --textbox whiptail_intro 25 88
+rm whiptail_intro
 
-# Hold intro for 5 seconds
-whiptail --title "RPI Raspbian Domain Controller Setup" --infobox whiptail_intro 20 84
-sleep 5
+
+
+# ================================================
+# MENU SELECTION
+# ================================================
+function main() {
+while true; do
+        menu=$(whiptail --title $TITLE --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
+            "1" "Message Box" \
+            3>&1 1>&2 2>&3)
+
+        exitstatus=$?
+
+        if [ ${exitstatus} = 0 ]; then
+            case ${menu} in
+                1)
+                    set_password_pi
+                ;;
+
+            esac
+        else
+            exit
+        fi
+    done
+}
+
+
 
 # ================================================
 # SECURITY
@@ -51,7 +81,7 @@ set_password_pi() {
   done
   echo -e "$pipasswd1\n$pipasswd2" | passwd pi
 }
-# set_password_pi
+#set_password_pi
 
 set_password_root(){
     while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
@@ -65,7 +95,7 @@ set_password_root(){
     done
     echo -e "$rootpasswd1\n$rootpasswd2" | passwd root
 }
-# set_password_root
+#set_password_root
 
 
 
@@ -193,7 +223,7 @@ setup_dhcp_server() {
 
   #sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
 }
-setup_dhcp_server
+#setup_dhcp_server
 
 
 # ================================================
