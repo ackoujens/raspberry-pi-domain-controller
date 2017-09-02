@@ -30,11 +30,11 @@ ______                      _         _____             _             _ _
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 14 84
+whiptail --textbox whiptail_intro 20 84
 
 # Hold intro for 5 seconds
-whiptail --title "RPI Raspbian Domain Controller Setup" --infobox whiptail_intro 14 84
-sleep 5000
+whiptail --title "RPI Raspbian Domain Controller Setup" --infobox whiptail_intro 20 84
+sleep 5
 
 # ================================================
 # SECURITY
