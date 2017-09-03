@@ -16,3 +16,5 @@ Run the command below to run the script on your Raspbian install over ssh
 ## Todo
 - Domain controller functionality
 - Domain needs to be enforced in capital letters where needed
+- Change enxb827eb3306a3 replacement to detecting of the interface name through ipconfig
+- Menu system
