@@ -35,7 +35,7 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 25 86
+whiptail --textbox whiptail_intro 25 87
 rm whiptail_intro
 
 
@@ -48,31 +48,35 @@ main() {
         menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
             "1" "Security" \
             3>&1 1>&2 2>&3)
-        security=$(whiptail --title "Security" --ok-button "Select" --cancel-button "Back" --menu "Before going online, make sure your Pi locked shut and up to date." 20 78 10 \
-            "1" "Create a separate user account" \
-            "2" "Reset Pi password" \
-            3>&1 1>&2 2>&3)
-
 
         exitstatus=$?
         if [ ${exitstatus} = 0 ]; then
             case ${menu} in
-                1)
-                  case ${security} in
-                    1)
-                      create_user
-                    ;;
-                    2)
-                      set_password_pi
-                    ;;
-                esac
-                ;;
+                1) do_security_menu ;;
             esac
 
         else
             exit
         fi
     done
+}
+
+do_security_menu() {
+  menu=$(whiptail --title "Security" --ok-button "Select" --cancel-button "Back" --menu "Before going online, make sure your Pi locked shut and up to date." 20 78 10 \
+      "1" "Create a separate user account" \
+      "2" "Reset Pi password" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) do_security_menu ;;
+        2) do_security_menu ;;
+      esac
+
+    else
+      return 0
+    fi
 }
 
 
