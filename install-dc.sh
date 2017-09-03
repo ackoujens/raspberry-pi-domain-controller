@@ -35,47 +35,8 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 25 87
+whiptail --textbox whiptail_intro 25 88
 rm whiptail_intro
-
-
-
-# ================================================
-# MENU SELECTION
-# ================================================
-main() {
-  while true; do
-    menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
-      "1" "Security" \
-      3>&1 1>&2 2>&3)
-
-    exitstatus=$?
-    if [ ${exitstatus} = 1 ]; then
-      return 0
-    elif [ ${exitstatus} = 0 ]; then
-      case ${menu} in
-        1) do_security_menu ;;
-      esac
-    fi
-  done
-}
-
-do_security_menu() {
-  menu=$(whiptail --title "Security" --ok-button "Select" --cancel-button "Back" --menu "Before going online, make sure your Pi locked shut and up to date." 20 78 10 \
-      "1" "Create a separate user account" \
-      "2" "Reset Pi password" \
-      3>&1 1>&2 2>&3)
-
-    exitstatus=$?
-    if [ ${exitstatus} = 1 ]; then
-      return 0
-    elif [ ${exitstatus} = 0 ]; then
-      case ${menu} in
-        1) do_security_menu ;;
-        2) do_security_menu ;;
-      esac
-    fi
-}
 
 
 
@@ -290,6 +251,41 @@ test() {
 }
 echo $domain
 
-test
-main
-test
+
+
+# ================================================
+# MENU SELECTION
+# ================================================
+do_security_menu() {
+  menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Create a separate user account" \
+      "2" "Reset Pi password" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) do_security_menu ;;
+        2) do_security_menu ;;
+      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+    fi
+}
+
+while true; do
+  menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
+    "1" "Security" \
+    3>&1 1>&2 2>&3)
+
+  exitstatus=$?
+  if [ ${exitstatus} = 1 ]; then
+    return 0
+  elif [ ${exitstatus} = 0 ]; then
+    case ${menu} in
+      1) do_security_menu ;;
+    esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+  else
+    exit 1
+  fi
+done
