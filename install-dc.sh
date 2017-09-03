@@ -63,6 +63,7 @@ create_sudo_user() {
 lock_user() {
   if whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
     sudo passwd --lock $1
+  fi
 }
 
 
