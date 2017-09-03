@@ -35,45 +35,78 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 25 88
+whiptail --textbox whiptail_intro 24 88
 rm whiptail_intro
 
 
 
 # ================================================
-# SECURITY
+# SECURITY - USER ACCOUNTS
 # ================================================
-create_user() {
-  echo "test"
-}
-
-set_password_pi() {
+set_password() {
   while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
-      pipasswd1=$(whiptail --passwordbox "Enter new password for pi:" 10 60 3>&1 1>&2 2>&3)
-      pipasswd2=$(whiptail --passwordbox "Repeat new password for pi:" 10 60 3>&1 1>&2 2>&3)
-      if [ $pipasswd1 != $pipasswd2 ]; then
+      passwd1=$(whiptail --passwordbox "Enter new password for $1:" 10 60 3>&1 1>&2 2>&3)
+      passwd2=$(whiptail --passwordbox "Repeat new password for $1:" 10 60 3>&1 1>&2 2>&3)
+      if [ $passwd1 != $passwd2 ]; then
           whiptail --msgbox "Passwords do not match" 10 60
           ! true
       fi
       password_result=$?
   done
-  echo -e "$pipasswd1\n$pipasswd2" | passwd pi
+  echo -e "$passwd1\n$passwd2" | passwd $1
 }
-#set_password_pi
 
-set_password_root(){
-    while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
-        rootpasswd1=$(whiptail --passwordbox "Enter new password for root:" 10 60 3>&1 1>&2 2>&3)
-        rootpasswd2=$(whiptail --passwordbox "Repeat new password for root:" 10 60 3>&1 1>&2 2>&3)
-        if [ $rootpasswd1 != $rootpasswd2 ]; then
-            whiptail --msgbox "Passwords do not match" 10 60
-            ! true
-        fi
-        password_result=$?
-    done
-    echo -e "$rootpasswd1\n$rootpasswd2" | passwd root
+create_sudo_user() {
+  sudo /usr/sbin/useradd --groups sudo -m $1
 }
-#set_password_root
+
+lock_user() {
+  if whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
+    sudo passwd --lock $1
+}
+
+
+
+# ================================================
+# SECURITY - SSH
+# ================================================
+secure_ssh() {
+  # Lock down SSH from root (TODO: Must resemble file below)
+  # /etc/ssh/sshd_config
+  echo "
+  # Authentication:
+  LoginGraceTime 120
+  PermitRootLogin no
+  StrictModes yes
+
+  RSAAuthentication yes
+  PubkeyAuthentication yes
+  AuthorizedKeysFile      %h/.ssh/authorized_keys
+
+  # To enable empty passwords, change to yes (NOT RECOMMENDED)
+  PermitEmptyPasswords no
+
+  # Change to yes to enable challenge-response passwords (beware issues with
+  # some PAM modules and threads)
+  ChallengeResponseAuthentication no
+
+  # Change to no to disable tunnelled clear text passwords
+  PasswordAuthentication no
+
+  UsePAM no
+  "
+
+  # Disable Pluggable Authentication Modules (PAM)
+  mkdir ~/.ssh
+  chmod 0700 ~/.ssh
+  touch ~/.ssh/authorized_keys
+  chmod 0600 ~/.ssh/authorized_keys
+
+  # Manage authorized keys (by editing the ~/.ssh/authorized_keys file)
+
+  # Restart SSH service
+  sudo systemctl restart ssh
+}
 
 
 
@@ -258,8 +291,11 @@ echo $domain
 # ================================================
 do_security_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "Create a separate user account" \
-      "2" "Reset Pi password" \
+      "1" "User Accounts" \
+      "2" "Securing SSH" \
+      "3" "Firewall" \
+      "4" "Automated Updates" \
+      "5" "Logwatch" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -267,14 +303,36 @@ do_security_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) do_security_menu ;;
-        2) do_security_menu ;;
+        1) do_user_accounts_menu ;;
+        2) do_securing_ssh_menu ;;
+        3) do_firewall_menu ;;
+        4) do_automated_updates_menu ;;
+        5) do_logwatch_menu ;;
+      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+    fi
+}
+
+do_user_accounts_menu() {
+  menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Change root password" \
+      "2" "Create new user account" \
+      "3" "Lock down pi user account" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) set_password root ;;
+        2) create_sudo_user ;;
+        3) lock_user pi ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
     fi
 }
 
 while true; do
-  menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
+  menu=$(whiptail --title "$TITLE" --menu "Perform these procedures in a chronological order." --ok-button Select --cancel-button Quit 20 78 10 \
     "1" "Security" \
     3>&1 1>&2 2>&3)
 
