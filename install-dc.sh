@@ -45,20 +45,19 @@ rm whiptail_intro
 # ================================================
 main() {
   while true; do
-        menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
-            "1" "Security" \
-            3>&1 1>&2 2>&3)
+    menu=$(whiptail --title "$TITLE" --ok-button "Select" --cancel-button "Quit" --menu "Perform these procedures in a chronological order." 20 78 10 \
+      "1" "Security" \
+      3>&1 1>&2 2>&3)
 
-        exitstatus=$?
-        if [ ${exitstatus} = 0 ]; then
-            case ${menu} in
-                1) do_security_menu ;;
-            esac
-
-        else
-            exit
-        fi
-    done
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) do_security_menu ;;
+      esac
+    fi
+  done
 }
 
 do_security_menu() {
@@ -68,14 +67,13 @@ do_security_menu() {
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
-    if [ ${exitstatus} = 0 ]; then
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
         1) do_security_menu ;;
         2) do_security_menu ;;
       esac
-
-    else
-      return 0
     fi
 }
 
