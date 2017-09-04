@@ -21,7 +21,7 @@ function displayMessage() {
 
 # Replace text in a specific file
 function replaceText() {
-  sudo sed -i "/'$2'/c\'$3'" $1
+  sudo sed -i "/$2/c\$3" $1
 }
 
 # Introduction (Font: Doom)
