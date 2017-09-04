@@ -57,7 +57,7 @@ set_password() {
       fi
       password_result=$?
   done
-  echo -e "$passwd1\n$passwd2" | passwd $1
+  sudo "$passwd1\n$passwd2" | passwd $1
 }
 
 enable_root() {
