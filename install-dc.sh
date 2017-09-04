@@ -73,8 +73,7 @@ create_sudo_user() {
   displayMessage "Create new sudo user" "Creating a new sudo user prevents predictable attacks using the default pi account."
   user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "dcpi" 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to create the $user user account?" 0 0; then
-    #sudo /usr/sbin/useradd --groups sudo -m $user
-    sudo useradd $user && set_password $user
+    sudo adduser $user
     sudo usermod -aG sudo $user
   fi
 }
