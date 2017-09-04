@@ -24,6 +24,10 @@ function replaceText() {
   sudo sed -i '/'"$2"'/c\'"$3"'' $1
 }
 
+function appendText() {
+  echo $2 >> $1
+}
+
 # Introduction (Font: Doom)
 echo '                ______                _     _
                 | ___ \              | |   (_)
@@ -95,16 +99,6 @@ lock_user() {
 # SECURITY - SSH
 # ================================================
 secure_ssh() {
-  # Lock down SSH from root (TODO: Must resemble file below)
-  # /etc/ssh/sshd_config
-  echo "
-  RSAAuthentication yes <-
-   <-
-   <-
-   <-
-   <-
-  "
-
   # Disable Pluggable Authentication Modules (PAM)
   mkdir ~/.ssh
   chmod 0700 ~/.ssh
@@ -118,26 +112,46 @@ secure_ssh() {
 }
 
 disable_ssh_root() {
-  replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m"                 "LoginGraceTime 120"
-  replaceText "/etc/ssh/sshd_config" "#PermitRootLogin prohibit-password" "PermitRootLogin no"
-  replaceText "/etc/ssh/sshd_config" "#StrictModes yes"                   "StrictModes yes{G;}test"
-  replaceText "/etc/ssh/sshd_config" "#PubkeyAuthentication yes" "PubkeyAuthentication yes"
-  replaceText "/etc/ssh/sshd_config" "AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2" "AuthorizedKeysFile      %h/.ssh/authorized_keys"
-  replaceText "/etc/ssh/sshd_config" "#PermitEmptyPasswords no" "PermitEmptyPasswords no"
-  replaceText "/etc/ssh/sshd_config" "#PasswordAuthentication yes" "PasswordAuthentication no"
-  replaceText "/etc/ssh/sshd_config" "UsePam yes" "UsePAM no"
+  if whiptail --yesno "Are you sure you want to lock ssh for root?" 0 0; then
+    replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m"                 "LoginGraceTime 120"
+    replaceText "/etc/ssh/sshd_config" "#PermitRootLogin prohibit-password" "PermitRootLogin no"
+    replaceText "/etc/ssh/sshd_config" "#StrictModes yes"                   "StrictModes yes"
+    replaceText "/etc/ssh/sshd_config" "#PubkeyAuthentication yes" "PubkeyAuthentication yes"
+
+    # TODO Needs to be tested on new build
+    replaceText "/etc/ssh/sshd_config" "AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2" "AuthorizedKeysFile      %h/.ssh/authorized_keys"
+
+    replaceText "/etc/ssh/sshd_config" "#PermitEmptyPasswords no" "PermitEmptyPasswords no"
+    replaceText "/etc/ssh/sshd_config" "#PasswordAuthentication yes" "PasswordAuthentication no"
+
+    # TODO Append this if not present
+    #RSAAuthentication yes
+  fi
 }
 
 disable_pam() {
- echo "NULL"
+  if whiptail --yesno "Are you sure you want to disable PAM?" 0 0; then
+    replaceText "/etc/ssh/sshd_config" "UsePAM yes" "UsePAM no"
+    mkdir ~/.ssh
+    chmod 0700 ~/.ssh
+    touch ~/.ssh/authorized_keys
+    chmod 0600 ~/.ssh/authorized_keys
+  fi
 }
 
 clear_authorized_keys() {
-  echo "NULL"
+  if whiptail --yesno "Are you sure you want to clear all SSH keys from the list?" 0 0; then
+    sudo rm ~/.ssh/authorized_keys
+    touch ~/.ssh/authorized_keys
+    chmod 0600 ~/.ssh/authorized_keys
+  fi
 }
 
 add_authorized_key() {
-  echo "NULL"
+  key=$(whiptail --backtitle "SSH" --inputbox "Add SSH key" 10 60 3>&1 1>&2 2>&3)
+  if whiptail --yesno "Are you sure you want to add this SSH key?" 0 0; then
+    appendText "~/.ssh/authorized_keys" $key
+  fi
 }
 
 
