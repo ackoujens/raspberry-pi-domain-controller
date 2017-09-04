@@ -35,7 +35,7 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 22 88
+whiptail --textbox whiptail_intro 21 88
 rm whiptail_intro
 
 
@@ -47,17 +47,30 @@ set_password() {
   while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
       passwd1=$(whiptail --passwordbox "Enter new password for $1:" 10 60 3>&1 1>&2 2>&3)
       passwd2=$(whiptail --passwordbox "Repeat new password for $1:" 10 60 3>&1 1>&2 2>&3)
-      if [ $passwd1 != $passwd2 ]; then
-          whiptail --msgbox "Passwords do not match" 10 60
-          ! true
+
+      exitstatus=$?
+      if [ ${exitstatus} = 1 ]; then
+        return 0
+      elif [ $passwd1 != $passwd2 ]; then
+        whiptail --msgbox "Passwords do not match" 10 60
+        ! true
       fi
       password_result=$?
   done
   echo -e "$passwd1\n$passwd2" | passwd $1
 }
 
+enable_root() {
+  if whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
+    sudo sed -i '/PermitRootLogin without-password/c\PermitRootLogin yes' /etc/ssh/sshd_config
+  fi
+}
+
 create_sudo_user() {
-  sudo /usr/sbin/useradd --groups sudo -m $1
+  user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "dcpi" 3>&1 1>&2 2>&3)
+  if whiptail --yesno "Are you sure you want to create the $user user account?" 0 0; then
+    sudo /usr/sbin/useradd --groups sudo -m $user
+  fi
 }
 
 lock_user() {
@@ -314,10 +327,11 @@ do_security_menu() {
 }
 
 do_user_accounts_menu() {
-  menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "Change root password" \
-      "2" "Create new user account" \
-      "3" "Lock down pi user account" \
+  menu=$(whiptail --title "$TITLE" --menu "User Accounts" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Enable root" \
+      "2" "Change root password" \
+      "3" "Create new user account" \
+      "4" "Lock down pi user account" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -325,9 +339,10 @@ do_user_accounts_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) set_password root ;;
-        2) create_sudo_user ;;
-        3) lock_user pi ;;
+        1) enable_root ;;
+        2) set_password root ;;
+        3) create_sudo_user ;;
+        4) lock_user pi ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_user_accounts_menu
     fi
