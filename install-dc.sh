@@ -128,15 +128,15 @@ disable_ssh_root() {
 }
 
 disable_pam() {
-
+ echo "NULL"
 }
 
 clear_authorized_keys() {
-
+  echo "NULL"
 }
 
 add_authorized_key() {
-
+  echo "NULL"
 }
 
 
