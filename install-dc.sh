@@ -74,6 +74,7 @@ create_sudo_user() {
   user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "dcpi" 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to create the $user user account?" 0 0; then
     sudo /usr/sbin/useradd --groups sudo -m $user
+    set_password $user
   fi
 }
 
@@ -334,8 +335,9 @@ do_user_accounts_menu() {
   menu=$(whiptail --title "$TITLE" --menu "User Accounts" --ok-button Select --cancel-button Back 20 78 10 \
       "1" "Enable root" \
       "2" "Change root password" \
-      "3" "Create new user account" \
-      "4" "Lock down pi user account" \
+      "3" "Create new sudo user account" \
+      "4" "Create new sudo user account" \
+      "5" "Lock down pi user account" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -347,6 +349,28 @@ do_user_accounts_menu() {
         2) set_password root ;;
         3) create_sudo_user ;;
         4) lock_user pi ;;
+      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+      do_user_accounts_menu
+    fi
+}
+
+do_securing_ssh_menu() {
+  menu=$(whiptail --title "$TITLE" --menu "Securing ssh" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Disable root login" \
+      "2" "Disable Pluggable Authentication Modules (PAM)" \
+      "3" "Enable/Clear Authorized Keys" \
+      "4" "Add Authorized Key" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) disable_ssh_root ;;
+        2) disable_pam ;;
+        3) clear_authorized_keys ;;
+        4) add_authorized_key ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_user_accounts_menu
     fi
