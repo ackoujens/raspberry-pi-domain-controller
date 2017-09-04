@@ -328,8 +328,8 @@ do_user_accounts_menu() {
         1) set_password root ;;
         2) create_sudo_user ;;
         3) lock_user pi ;;
-        $(0)
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+      $(0)
     fi
 }
 
