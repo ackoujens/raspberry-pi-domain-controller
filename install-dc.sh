@@ -64,6 +64,9 @@ enable_root() {
   displayMessage "Enable root" "You need to enable root to secure it's password afterwards."
   if whiptail --yesno "Are you sure you want to enable the root user account?" 0 0; then
     sudo sed -i '/PermitRootLogin without-password/c\PermitRootLogin yes' /etc/ssh/sshd_config
+    displayMessage "Enable root" "You will now exit your ssh session. Ssh into your pi and restart this script."
+    sudo /etc/init.d/ssh restart
+    exit
   fi
 }
 
