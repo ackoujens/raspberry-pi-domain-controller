@@ -336,7 +336,7 @@ do_user_accounts_menu() {
       "1" "Enable root" \
       "2" "Change root password" \
       "3" "Create new sudo user account" \
-      "5" "Lock down pi user account" \
+      "4" "Lock down pi user account" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
