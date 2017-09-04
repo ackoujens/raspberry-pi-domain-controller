@@ -328,6 +328,7 @@ do_security_menu() {
         4) do_automated_updates_menu ;;
         5) do_logwatch_menu ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+      do_security_menu
     fi
 }
 
