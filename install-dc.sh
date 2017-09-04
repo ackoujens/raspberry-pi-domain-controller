@@ -98,17 +98,11 @@ secure_ssh() {
   # Lock down SSH from root (TODO: Must resemble file below)
   # /etc/ssh/sshd_config
   echo "
-  # Authentication:
-  LoginGraceTime 120 <- #LoginGraceTime 2m
-  PermitRootLogin no  <- #PermitRootLogin prohibit-password
-  StrictModes yes <- APPEND together with command above
-
   RSAAuthentication yes <-
-  PubkeyAuthentication yes <- #PubkeyAuthentication yes
-  AuthorizedKeysFile      %h/.ssh/authorized_keys <- AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2
-  PermitEmptyPasswords no <- #PermitEmptyPasswords no
-  PasswordAuthentication no <- #PasswordAuthentication yes
-  UsePAM no <- UsePam yes
+   <-
+   <-
+   <-
+   <-
   "
 
   # Disable Pluggable Authentication Modules (PAM)
@@ -124,7 +118,14 @@ secure_ssh() {
 }
 
 disable_ssh_root() {
-  replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m" "LoginGraceTime 120"
+  replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m"                 "LoginGraceTime 120"
+  replaceText "/etc/ssh/sshd_config" "#PermitRootLogin prohibit-password" "PermitRootLogin no"
+  replaceText "/etc/ssh/sshd_config" "#StrictModes yes"                   "StrictModes yes{G;}test"
+  replaceText "/etc/ssh/sshd_config" "#PubkeyAuthentication yes" "PubkeyAuthentication yes"
+  replaceText "/etc/ssh/sshd_config" "AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2" "AuthorizedKeysFile      %h/.ssh/authorized_keys"
+  replaceText "/etc/ssh/sshd_config" "#PermitEmptyPasswords no" "PermitEmptyPasswords no"
+  replaceText "/etc/ssh/sshd_config" "#PasswordAuthentication yes" "PasswordAuthentication no"
+  replaceText "/etc/ssh/sshd_config" "UsePam yes" "UsePAM no"
 }
 
 disable_pam() {
