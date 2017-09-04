@@ -124,7 +124,7 @@ secure_ssh() {
 }
 
 disable_ssh_root() {
-  replaceText /etc/ssh/sshd_config "#LoginGraceTime 2m" "LoginGraceTime 120"
+  replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m" "LoginGraceTime 120"
 }
 
 disable_pam() {
