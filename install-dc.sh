@@ -35,7 +35,7 @@ ______                      _         _____             _             _ _
 | |/ / (_) | | | | | | (_| | | | | | | \__/\ (_) | | | | |_| | | (_) | | |  __/ |
 |___/ \___/|_| |_| |_|\__,_|_|_| |_|  \____/\___/|_| |_|\__|_|  \___/|_|_|\___|_|
 ' > whiptail_intro
-whiptail --textbox whiptail_intro 23 88
+whiptail --textbox whiptail_intro 22 88
 rm whiptail_intro
 
 
@@ -328,7 +328,7 @@ do_user_accounts_menu() {
         1) set_password root ;;
         2) create_sudo_user ;;
         3) lock_user pi ;;
-        do_user_accounts_menu
+        $0
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
     fi
 }
