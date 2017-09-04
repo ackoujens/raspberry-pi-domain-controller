@@ -19,6 +19,11 @@ function displayMessage() {
     whiptail --title "$1" --msgbox "$2" 8 78
 }
 
+# Replace text in a specific file
+function replaceText() {
+  sudo sed -i "/'$2'/c\'$3'" $1
+}
+
 # Introduction (Font: Doom)
 echo '                ______                _     _
                 | ___ \              | |   (_)
@@ -94,25 +99,16 @@ secure_ssh() {
   # /etc/ssh/sshd_config
   echo "
   # Authentication:
-  LoginGraceTime 120
-  PermitRootLogin no
-  StrictModes yes
+  LoginGraceTime 120 <- #LoginGraceTime 2m
+  PermitRootLogin no  <- #PermitRootLogin prohibit-password
+  StrictModes yes <- APPEND together with command above
 
-  RSAAuthentication yes
-  PubkeyAuthentication yes
-  AuthorizedKeysFile      %h/.ssh/authorized_keys
-
-  # To enable empty passwords, change to yes (NOT RECOMMENDED)
-  PermitEmptyPasswords no
-
-  # Change to yes to enable challenge-response passwords (beware issues with
-  # some PAM modules and threads)
-  ChallengeResponseAuthentication no
-
-  # Change to no to disable tunnelled clear text passwords
-  PasswordAuthentication no
-
-  UsePAM no
+  RSAAuthentication yes <-
+  PubkeyAuthentication yes <- #PubkeyAuthentication yes
+  AuthorizedKeysFile      %h/.ssh/authorized_keys <- AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2
+  PermitEmptyPasswords no <- #PermitEmptyPasswords no
+  PasswordAuthentication no <- #PasswordAuthentication yes
+  UsePAM no <- UsePam yes
   "
 
   # Disable Pluggable Authentication Modules (PAM)
@@ -125,6 +121,22 @@ secure_ssh() {
 
   # Restart SSH service
   sudo systemctl restart ssh
+}
+
+disable_ssh_root() {
+  replaceText /etc/ssh/sshd_config "#LoginGraceTime 2m" "LoginGraceTime 120"
+}
+
+disable_pam() {
+
+}
+
+clear_authorized_keys() {
+
+}
+
+add_authorized_key() {
+
 }
 
 
@@ -288,20 +300,6 @@ setup_kerberos() {
   cd /etc
   sudo cp /var/lib/samba/private/krb5.conf ./
 }
-
-
-
-# ================================================
-# TESTING
-# ================================================
-
-test() {
-  echo "PASSWORD TEST"
-  echo "Old pi password: " + $pipasswd1
-  echo "New pi password: " + $pipasswd2
-  echo $domain
-}
-echo $domain
 
 
 
