@@ -142,7 +142,7 @@ disable_ssh_root() {
 
     # TODO Append this if not present
     #RSAAuthentication yes
-    grep -q -F 'RSAAuthentication yes' /etc/ssh/sshd_config || echo 'RSAAuthentication yes' >> /etc/ssh/sshd_config
+    grep -q -F 'RSAAuthentication yes' /etc/ssh/sshd_config || sudo bash -c "echo 'RSAAuthentication yes' >> /etc/ssh/sshd_config"
   fi
 }
 
