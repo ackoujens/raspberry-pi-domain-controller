@@ -109,14 +109,14 @@ lock_user() {
     locked=0
   fi
 
-  if ${locked} = 1 then
+  if [ ${locked} = 1 ] then
     if whiptail --yesno "Are you sure you want to unlock the pi user account?" 0 0; then
       sudo passwd --unlock pi
       echo "unlocked"
     fi
   fi
 
-  if ${locked} = 0 then
+  if [ ${locked} = 0 ] then
     if whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
       sudo passwd --lock pi
       echo "locked"
