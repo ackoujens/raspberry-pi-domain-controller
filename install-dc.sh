@@ -63,6 +63,15 @@ do_update() {
 # ================================================
 # SECURITY - USER ACCOUNTS
 # ================================================
+enable_root() {
+  displayMessage "Enable root" "You need to enable root to secure it's password afterwards."
+  if whiptail --yesno "Are you sure you want to enable the root user account?" 0 0; then
+    sudo sed -i '/PermitRootLogin without-password/c\PermitRootLogin yes' /etc/ssh/sshd_config
+    displayMessage "Enable root" "Your RPi will now reboot. Ssh back into it after reboot is completed."
+    sudo reboot now
+  fi
+}
+
 set_password() {
   while [[ -z $password_result ]] || [[ $password_result == "1" ]] ; do
       passwd1=$(whiptail --passwordbox "Enter new password for $1:" 10 60 3>&1 1>&2 2>&3)
@@ -80,28 +89,28 @@ set_password() {
   echo -e "$passwd1\n$passwd2" | sudo passwd $1
 }
 
-enable_root() {
-  displayMessage "Enable root" "You need to enable root to secure it's password afterwards."
-  if whiptail --yesno "Are you sure you want to enable the root user account?" 0 0; then
-    sudo sed -i '/PermitRootLogin without-password/c\PermitRootLogin yes' /etc/ssh/sshd_config
-    displayMessage "Enable root" "Your RPi will now reboot. Ssh back into it after reboot is completed."
-    sudo reboot now
-  fi
-}
-
 create_sudo_user() {
   displayMessage "Create new sudo user" "Creating a new sudo user prevents predictable attacks using the default pi account."
   user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "dcpi" 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to create the $user user account?" 0 0; then
     sudo adduser $user
     sudo usermod -aG sudo $user
+    displayMessage "Create new sude user" "Your RPi will now reboot. Ssh back into it with $user after reboot is completed."
+    sudo reboot now
   fi
 }
 
 lock_user() {
-  if whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
+
+
+  if passwd -S pi | awk '{print $2;}' -eq "L" then
+    if whiptail --yesno "Are you sure you want to unlock the pi user account?" 0 0; then
+      sudo passwd --unlock $1
+    fi
+  elif whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
     sudo passwd --lock $1
   fi
+
 }
 
 
