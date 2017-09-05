@@ -50,6 +50,17 @@ rm whiptail_intro
 
 
 # ================================================
+# UPDATE
+# ================================================
+do_update() {
+  if whiptail --yesno "Are you sure you want to update your RPi?" 0 0; then
+    sudo apt-get -y update && sudo apt-get -y upgrade
+  fi
+}
+
+
+
+# ================================================
 # SECURITY - USER ACCOUNTS
 # ================================================
 set_password() {
@@ -140,17 +151,6 @@ add_authorized_key() {
     appendText "~/.ssh/authorized_keys" $key
   fi
 }
-
-
-
-# ================================================
-# UPDATE
-# ================================================
-do_update() {
-  apt-get -y update &&
-  apt-get -y upgrade
-}
-# do_update
 
 
 
@@ -310,35 +310,12 @@ setup_kerberos() {
 # ================================================
 do_security_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "User Accounts" \
-      "2" "Securing SSH" \
-      "3" "Firewall" \
-      "4" "Automated Updates" \
-      "5" "Logwatch" \
-      3>&1 1>&2 2>&3)
-
-    exitstatus=$?
-    if [ ${exitstatus} = 1 ]; then
-      return 0
-    elif [ ${exitstatus} = 0 ]; then
-      case ${menu} in
-        1) do_user_accounts_menu ;;
-        2) do_securing_ssh_menu ;;
-        3) do_firewall_menu ;;
-        4) do_automated_updates_menu ;;
-        5) do_logwatch_menu ;;
-      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
-      do_security_menu
-    fi
-}
-
-do_user_accounts_menu() {
-  menu=$(whiptail --title "$TITLE" --menu "User Accounts" --ok-button Select --cancel-button Back 20 78 10 \
       "1" "Update" \
-      "2" "Enable root" \
-      "3" "Change root password" \
-      "4" "Create new sudo user account" \
-      "5" "Lock down pi user account" \
+      "2" "User Accounts" \
+      "3" "Securing SSH" \
+      "4" "Firewall" \
+      "5" "Automated Updates" \
+      "6" "Logwatch" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -347,10 +324,33 @@ do_user_accounts_menu() {
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
         1) do_update ;;
-        2) enable_root ;;
-        3) set_password root ;;
-        4) create_sudo_user ;;
-        5) lock_user pi ;;
+        2) do_user_accounts_menu ;;
+        3) do_securing_ssh_menu ;;
+        4) do_firewall_menu ;;
+        5) do_automated_updates_menu ;;
+        6) do_logwatch_menu ;;
+      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+      do_security_menu
+    fi
+}
+
+do_user_accounts_menu() {
+  menu=$(whiptail --title "$TITLE" --menu "User Accounts" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Enable root" \
+      "2" "Change root password" \
+      "3" "Create new sudo user account" \
+      "4" "Lock down pi user account" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) enable_root ;;
+        2) set_password root ;;
+        3) create_sudo_user ;;
+        4) lock_user pi ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_user_accounts_menu
     fi
