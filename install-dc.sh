@@ -101,7 +101,7 @@ create_sudo_user() {
 }
 
 lock_user() {
-  locked_status = passwd -S $1 | awk '{print $2;}'
+  locked_status=passwd -S $1 | awk '{print $2;}'
   locked=$?
   if ${locked_status} = 'L'; then
     locked=1
@@ -109,7 +109,7 @@ lock_user() {
     locked=0
   fi
 
-  if locked || whiptail --yesno "Are you sure you want to unlock the pi user account?" 0 0; then
+  if ${locked} || whiptail --yesno "Are you sure you want to unlock the pi user account?" 0 0; then
     sudo passwd --unlock $1
   elif whiptail --yesno "Are you sure you want to lock the pi user account?" 0 0; then
     sudo passwd --lock $1
