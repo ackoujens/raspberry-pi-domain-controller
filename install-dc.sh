@@ -142,6 +142,7 @@ disable_ssh_root() {
 
     # TODO Append this if not present
     #RSAAuthentication yes
+    grep -q -F 'RSAAuthentication yes' /etc/ssh/sshd_config || echo 'RSAAuthentication yes' >> /etc/ssh/sshd_config
   fi
 }
 
@@ -357,7 +358,7 @@ do_user_accounts_menu() {
       "1" "Enable root" \
       "2" "Change root password" \
       "3" "Create new sudo user account" \
-      "4" "Lock down pi user account" \
+      "4" "Lock/Unlock pi user account" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
