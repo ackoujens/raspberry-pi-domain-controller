@@ -101,9 +101,9 @@ create_sudo_user() {
 }
 
 lock_user() {
-  locked_status="$(passwd -S $1 | awk '{print $2;}')"
+  locked_status=$(passwd -S $1 | awk '{print $2;}')
   locked=$?
-  if ${locked_status} = L ; then
+  if [ ${locked_status} = "L" ] ; then
     locked=1
   else
     locked=0
