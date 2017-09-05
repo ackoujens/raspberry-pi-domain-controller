@@ -98,19 +98,6 @@ lock_user() {
 # ================================================
 # SECURITY - SSH
 # ================================================
-secure_ssh() {
-  # Disable Pluggable Authentication Modules (PAM)
-  mkdir ~/.ssh
-  chmod 0700 ~/.ssh
-  touch ~/.ssh/authorized_keys
-  chmod 0600 ~/.ssh/authorized_keys
-
-  # Manage authorized keys (by editing the ~/.ssh/authorized_keys file)
-
-  # Restart SSH service
-  sudo systemctl restart ssh
-}
-
 disable_ssh_root() {
   if whiptail --yesno "Are you sure you want to lock ssh for root?" 0 0; then
     replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m"                 "LoginGraceTime 120"
@@ -347,10 +334,11 @@ do_security_menu() {
 
 do_user_accounts_menu() {
   menu=$(whiptail --title "$TITLE" --menu "User Accounts" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "Enable root" \
-      "2" "Change root password" \
-      "3" "Create new sudo user account" \
-      "4" "Lock down pi user account" \
+      "1" "Update" \
+      "2" "Enable root" \
+      "3" "Change root password" \
+      "4" "Create new sudo user account" \
+      "5" "Lock down pi user account" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -358,10 +346,11 @@ do_user_accounts_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) enable_root ;;
-        2) set_password root ;;
-        3) create_sudo_user ;;
-        4) lock_user pi ;;
+        1) do_update ;;
+        2) enable_root ;;
+        3) set_password root ;;
+        4) create_sudo_user ;;
+        5) lock_user pi ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_user_accounts_menu
     fi
