@@ -133,15 +133,9 @@ disable_ssh_root() {
     replaceText "/etc/ssh/sshd_config" "#PermitRootLogin prohibit-password" "PermitRootLogin no"
     replaceText "/etc/ssh/sshd_config" "#StrictModes yes"                   "StrictModes yes"
     replaceText "/etc/ssh/sshd_config" "#PubkeyAuthentication yes" "PubkeyAuthentication yes"
-
-    # TODO Needs to be tested on new build
-    replaceText "/etc/ssh/sshd_config" "AuthorizedKeysFile      %h/.ssh/authorized_keys .ssh/authorized_keys2" "AuthorizedKeysFile      %h/.ssh/authorized_keys"
-
+    replaceText "/etc/ssh/sshd_config" "#AuthorizedKeysFile      .ssh/authorized_keys .ssh/authorized_keys2" "AuthorizedKeysFile      %h/.ssh/authorized_keys"
     replaceText "/etc/ssh/sshd_config" "#PermitEmptyPasswords no" "PermitEmptyPasswords no"
     replaceText "/etc/ssh/sshd_config" "#PasswordAuthentication yes" "PasswordAuthentication no"
-
-    # TODO Append this if not present
-    #RSAAuthentication yes
     grep -q -F 'RSAAuthentication yes' /etc/ssh/sshd_config || sudo bash -c "echo 'RSAAuthentication yes' >> /etc/ssh/sshd_config"
   fi
 }
