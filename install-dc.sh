@@ -287,8 +287,6 @@ GW=`ip route list | grep default | awk $'{print $3}'`
 octet="(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
 ip4="^$octet\\.$octet\\.$octet\\.$octet$"
 
-hostn="DCPI"
-
 hostname_file="/etc/hostname"
 hosts_file="/etc/hosts"
 dns_file="/etc/resolv.conf"
@@ -306,7 +304,7 @@ set_hostname(){
 }
 
 set_static_net(){
-  # set_static_net IP SUBNET GATEWAY
+  # set_static_net IP SUBNET GATEWAY DOMAIN
   sudo bash -c "echo 'auto lo' > $interfaces_file"
   sudo bash -c "echo 'iface lo inet loopback' >> $interfaces_file"
   sudo bash -c "echo ''  >> $interfaces_file"
@@ -315,6 +313,8 @@ set_static_net(){
   sudo bash -c "echo '  address $1' >> $interfaces_file"
   sudo bash -c "echo '  netmask $2' >> $interfaces_file"
   sudo bash -c "echo '  gateway $3' >> $interfaces_file"
+  sudo bash -c "echo '  dns-nameservers $1 $3' >> $interfaces_file"
+  sudo bash -c "echo '  dns-search $4' >> $interfaces_file"
 }
 
 set_dns_domain(){
@@ -339,14 +339,25 @@ setup_network() {
       gateway=$(whiptail --backtitle "Network Setup" --inputbox "Gateway" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
       dns1=$(whiptail --backtitle "Network Setup" --inputbox "DNS" 10 60 "192.168.1.1" 3>&1 1>&2 2>&3)
       domain=$(whiptail --backtitle "Network Setup" --inputbox "Domain Name" 10 60 "mydomain.ext" 3>&1 1>&2 2>&3)
+      hostn=$(whiptail --backtitle "Network Setup" --inputbox "Hostname" 10 60 "pdc" 3>&1 1>&2 2>&3)
       whiptail --backtitle "Network Setup" --title "Are the settings correct?" --yesno "\n IP Adress: $ipaddr \n Netmask: $netmask \n Gateway: $gateway \n DNS: $dns1 \n Domain: $domain \n" 18 78 3>&1 1>&2 2>&3
       result=$?
       set_hostname $hostn $domain
-      set_static_net $ipaddr $netmask $gateway
+      set_static_net $ipaddr $netmask $gateway $domain
       set_dns_domain $dns1 $domain
   done
 }
 
+
+
+# ================================================
+# NTP
+# ================================================
+set_ntp() {
+  sudo service ntp stop
+  sudo ntpupdate -B 0.ubuntu.pool.ntp.org
+  sudo service ntp start
+}
 
 
 
@@ -497,7 +508,8 @@ do_securing_ssh_menu() {
 do_network_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Networking" --ok-button Select --cancel-button Back 20 78 10 \
       "1" "Setup network" \
-      "2" "DHCP server configuration" \
+      "2" "Set NTP" \
+      "3" "DHCP server configuration" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -506,7 +518,8 @@ do_network_menu() {
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
         1) setup_network ;;
-        2) setup_dhcp_server ;;
+        2) set_ntp ;;
+        3) setup_dhcp_server ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_network_menu
     fi
