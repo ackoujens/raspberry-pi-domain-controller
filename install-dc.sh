@@ -11,11 +11,16 @@
 # ================================================
 # SCRIPT SETUP
 # ================================================
+# Quit on error
+set -e
+
 # Global variables
 TITLE="RPi Raspbian Domain Controller"
 
-# Quit on error
-set -e
+# Use menu interface or run entire config in 1 go
+# deploy
+# config
+MODE=$1
 
 # Display message
 function displayMessage() {
@@ -28,10 +33,31 @@ function replaceText() {
 }
 
 function appendText() {
-  echo $2 >> $1
+  sudo bash -c "echo '$2' >> $1"
 }
 
-# Introduction (Font: Doom)
+function findFile() {
+  if [ -f $1 ]; then
+    return 1
+  fi
+  return 0
+}
+
+function backupFile() {
+  findFile "$1.BAK"
+  if [[ ! ${?} ]]; then
+    sudo \cp $1 $1.BAK
+  fi
+}
+
+function restoreFile() {
+  findFile "$1.BAK"
+  if [[ ${?} ]]; then
+    sudo \cp $1.BAK $1
+  fi
+}
+
+# Print script title (Font: Doom)
 echo '                ______                _     _
                 | ___ \              | |   (_)
                 | |_/ /__ _ ___ _ __ | |__  _  __ _ _ __
@@ -67,9 +93,10 @@ do_update() {
 # SECURITY - USER ACCOUNTS
 # ================================================
 enable_root() {
+  backupFile /etc/ssh/sshd_config
   displayMessage "Enable root" "You need to enable root to secure it's password afterwards."
   if whiptail --yesno "Are you sure you want to enable the root user account?" 0 0; then
-    sudo sed -i '/PermitRootLogin without-password/c\PermitRootLogin yes' /etc/ssh/sshd_config
+    replaceText /etc/ssh/sshd_config "PermitRootLogin without-password" "PermitRootLogin yes"
     displayMessage "Enable root" "Your RPi will now reboot. Ssh back into it after reboot is completed."
     sudo reboot now
   fi
@@ -131,6 +158,7 @@ lock_user() {
 # SECURITY - SSH
 # ================================================
 disable_ssh_root() {
+  backupFile /etc/ssh/sshd_config
   if whiptail --yesno "Are you sure you want to lock ssh for root?" 0 0; then
     replaceText "/etc/ssh/sshd_config" "#LoginGraceTime 2m"                 "LoginGraceTime 120"
     replaceText "/etc/ssh/sshd_config" "#PermitRootLogin prohibit-password" "PermitRootLogin no"
@@ -144,6 +172,7 @@ disable_ssh_root() {
 }
 
 disable_pam() {
+  backupFile /etc/ssh/sshd_config
   if whiptail --yesno "Are you sure you want to disable PAM?" 0 0; then
     replaceText "/etc/ssh/sshd_config" "UsePAM yes" "UsePAM no"
     mkdir ~/.ssh
@@ -161,7 +190,6 @@ clear_authorized_keys() {
   fi
 }
 
-# TODO Error while adding key
 add_authorized_key() {
   key=$(whiptail --backtitle "SSH" --inputbox "Add SSH key" 10 60 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to add this SSH key?" 0 0; then
@@ -228,7 +256,6 @@ add_authorized_key() {
 
 
 
-
 # ================================================
 # SECURITY - LOGWATCH
 # ================================================
@@ -248,25 +275,22 @@ add_authorized_key() {
 # ================================================
 # NETWORK SETUP - NETWORK CONFIGURATION
 # ================================================
-HWADDR=`ifconfig enxb827eb3306a3 | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
-IPADDR=`ifconfig enxb827eb3306a3 | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
+INTERFACE='ifconfig | head -n1 | awk $"{print $1}" | cut -d ":" -f 1'
+HWADDR=`ifconfig $INTERFACE | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
+IPADDR=`ifconfig $INTERFACE | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
 ISDHCP=`grep dhcp /etc/network/interfaces | awk $'{print $4}'`
 GW=`ip route list | grep default | awk $'{print $3}'`
 
 octet="(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])"
 ip4="^$octet\\.$octet\\.$octet\\.$octet$"
 
-hostn=""
-hostname_result=""
-mode=""
+hostn="DCPI"
 
 hostname_file="/etc/hostname"
 hosts_file="/etc/hosts"
 dns_file="/etc/resolv.conf"
 interfaces_file="/etc/network/interfaces"
 
-
-# TODO
 set_hostname(){
     # set_hostname HOSTNAME DOMAINNAME
     sudo bash -c "echo '$1' > $hostname_file"
@@ -278,33 +302,24 @@ set_hostname(){
     sudo bash -c "echo 'ff02::2         ip6-allrouters' >> $hosts_file"
 }
 
-# TODO
 set_static_net(){
-    # set_static_net IP SUBNET GATEWAY
-    sudo bash -c "echo 'auto lo' > $interfaces_file"
-    sudo bash -c "echo 'iface lo inet loopback' >> $interfaces_file"
-    sudo bash -c "echo ''  >> $interfaces_file"
-    sudo bash -c "echo 'auto enxb827eb3306a3' >> $interfaces_file"
-    sudo bash -c "echo 'iface enxb827eb3306a3 inet static' >> $interfaces_file"
-    sudo bash -c "echo '  address $1' >> $interfaces_file"
-    sudo bash -c "echo '  netmask $2' >> $interfaces_file"
-    sudo bash -c "echo '  gateway $3' >> $interfaces_file"
+  # set_static_net IP SUBNET GATEWAY
+  sudo bash -c "echo 'auto lo' > $interfaces_file"
+  sudo bash -c "echo 'iface lo inet loopback' >> $interfaces_file"
+  sudo bash -c "echo ''  >> $interfaces_file"
+  sudo bash -c "echo 'auto $INTERFACE' >> $interfaces_file"
+  sudo bash -c "echo 'iface $INTERFACE inet static' >> $interfaces_file"
+  sudo bash -c "echo '  address $1' >> $interfaces_file"
+  sudo bash -c "echo '  netmask $2' >> $interfaces_file"
+  sudo bash -c "echo '  gateway $3' >> $interfaces_file"
 }
 
-# TODO
 set_dns_domain(){
-    # set_dns_domain DNSSERVER DOMAINNAME
-    if [ -z "$2" ] || [ "$2" = "adv.ru" ]; then
-        sudo bash -c "echo 'domain adv.ru'  > $dns_file"
-        sudo bash -c "echo 'search adv.ru adv.local.' >> $dns_file"
-    else
-        sudo bash -c "echo 'domain $2'  > $dns_file"
-        sudo bash -c "echo 'search $2' >> $dns_file"
-    fi
-    sudo bash -c "echo 'nameserver $1' >> $dns_file"
+  sudo bash -c "echo 'domain $2'  > $dns_file"
+  sudo bash -c "echo 'search $2' >> $dns_file"
+  sudo bash -c "echo 'nameserver $1' >> $dns_file"
 }
 
-# TODO
 setup_network() {
   while [ -z $result ] || [ $result == "1" ] ; do
 
@@ -369,12 +384,12 @@ setup_dhcp_server() {
 # DOMAIN CONTROLLER REQUIREMENTS
 # ================================================
 install_dc_req() {
-  sudo apt-get install git-core python-dev libacl1-dev libblkid-dev
-  sudo apt-get install build-essential libacl1-dev libattr1-dev \
+  sudo apt-get -y install git-core python-dev libacl1-dev libblkid-dev
+  sudo apt-get -y install build-essential libacl1-dev libattr1-dev \
   libblkid-dev libreadline-dev python-dev \
   python-dnspython gdb pkg-config libpopt-dev libldap2-dev \
   dnsutils libbsd-dev attr krb5-user docbook-xsl
-  sudo apt-get install winbind samba libnss-winbind libpam-winbind krb5-config krb5-locales krb5-user
+  sudo apt-get -y install winbind samba libnss-winbind libpam-winbind krb5-config krb5-locales krb5-user
 }
 
 
@@ -383,7 +398,7 @@ install_dc_req() {
 # SAMBA4 / DOMAIN PROVISIONING (TODO)
 # ================================================
 setup_samba() {
-  sudo apt-get install samba smbclient
+  sudo apt-get -y install samba smbclient
   sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
   sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
 }
@@ -405,12 +420,11 @@ setup_kerberos() {
 # ================================================
 do_security_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "Update" \
-      "2" "User Accounts" \
-      "3" "Securing SSH" \
-      "4" "Firewall" \
-      "5" "Automated Updates" \
-      "6" "Logwatch" \
+      "1" "User Accounts" \
+      "2" "Securing SSH" \
+      "3" "Firewall" \
+      "4" "Automated Updates" \
+      "5" "Logwatch" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -418,12 +432,11 @@ do_security_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) do_update ;;
-        2) do_user_accounts_menu ;;
-        3) do_securing_ssh_menu ;;
-        4) do_firewall_menu ;;
-        5) do_automated_updates_menu ;;
-        6) do_logwatch_menu ;;
+        1) do_user_accounts_menu ;;
+        2) do_securing_ssh_menu ;;
+        3) do_firewall_menu ;;
+        4) do_automated_updates_menu ;;
+        5) do_logwatch_menu ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_security_menu
     fi
@@ -480,10 +493,8 @@ do_securing_ssh_menu() {
 # ================================================
 do_network_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Networking" --ok-button Select --cancel-button Back 20 78 10 \
-      "1" "Hostname" \
-      "2" "Static IP configuration" \
-      "3" "DNS domain" \
-      "4" "DHCP server configuration" \
+      "1" "Setup network" \
+      "2" "DHCP server configuration" \
       3>&1 1>&2 2>&3)
 
     exitstatus=$?
@@ -491,10 +502,8 @@ do_network_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) set_hostname ;;
-        2) setup_network ;;
-        3) set_dns_domain ;;
-        4) setup_dhcp_server ;;
+        1) setup_network ;;
+        2) setup_dhcp_server ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
       do_network_menu
     fi
@@ -502,11 +511,12 @@ do_network_menu() {
 
 while true; do
   menu=$(whiptail --title "$TITLE" --menu "Perform these procedures in a chronological order." --ok-button Select --cancel-button Quit 20 78 10 \
-    "1" "Security" \
-    "2" "Network" \
-    "3" "Install DC Requirements" \
-    "4" "Setup Samba" \
-    "5" "Setup Kerberos" \
+    "1" "Update" \
+    "2" "Security" \
+    "3" "Network" \
+    "4" "Install DC Requirements" \
+    "5" "Setup Samba" \
+    "6" "Setup Kerberos" \
     3>&1 1>&2 2>&3)
 
   exitstatus=$?
@@ -514,11 +524,12 @@ while true; do
     return 0
   elif [ ${exitstatus} = 0 ]; then
     case ${menu} in
-      1) do_security_menu ;;
-      2) do_network_menu ;;
-      3) install_dc_req ;;
-      4) setup_samba ;;
-      5) setup_kerberos ;;
+      1) do_update ;;
+      2) do_security_menu ;;
+      3) do_network_menu ;;
+      4) install_dc_req ;;
+      5) setup_samba ;;
+      6) setup_kerberos ;;
     esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
   else
     exit 1
