@@ -401,7 +401,7 @@ setup_kerberos() {
 
 
 # ================================================
-# MENU SELECTION
+# MENU - Security
 # ================================================
 do_security_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Security" --ok-button Select --cancel-button Back 20 78 10 \
@@ -473,7 +473,12 @@ do_securing_ssh_menu() {
     fi
 }
 
-do_networking_menu() {
+
+
+# ================================================
+# MENU - Network
+# ================================================
+do_network_menu() {
   menu=$(whiptail --title "$TITLE" --menu "Networking" --ok-button Select --cancel-button Back 20 78 10 \
       "1" "Hostname" \
       "2" "Static IP configuration" \
@@ -491,7 +496,7 @@ do_networking_menu() {
         3) set_dns_domain ;;
         4) setup_dhcp_server ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
-      do_securing_ssh_menu
+      do_network_menu
     fi
 }
 
