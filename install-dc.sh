@@ -3,7 +3,10 @@
 # Raspberry Pi Raspbian Domain Controller
 # Author: Jens Ackou
 
-
+#https://raw.githubusercontent.com/asb/raspi-config/master/raspi-config
+#https://en.wikibooks.org/wiki/Bash_Shell_Scripting/Whiptail
+#https://www.madirish.net/566
+#https://help.dreamhost.com/hc/en-us/articles/216499537-How-to-configure-passwordless-login-in-Mac-OS-X-and-Linux
 
 # ================================================
 # SCRIPT SETUP
@@ -158,6 +161,7 @@ clear_authorized_keys() {
   fi
 }
 
+# TODO Error while adding key
 add_authorized_key() {
   key=$(whiptail --backtitle "SSH" --inputbox "Add SSH key" 10 60 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to add this SSH key?" 0 0; then
@@ -168,7 +172,81 @@ add_authorized_key() {
 
 
 # ================================================
-# NETWORK SETUP
+# SECURITY - FIREWALL
+# ================================================
+# iptables is a firewall package
+#sudo apt-get install iptables iptables-persistent
+
+# Check current iptables rules
+#sudo /sbin/iptables -L
+
+# Save in text file and edit them
+#sudo /sbin/iptables-save > /etc/iptables/rules.v4
+
+#sudo cat /etc/iptables/rules.v4
+#:INPUT ACCEPT [0:0]
+#:FORWARD ACCEPT [0:0]
+#:OUTPUT ACCEPT [0:0]
+
+# Allows all loopback (lo0) traffic and drop all traffic to 127/8 that doesn't use lo0
+#-A INPUT -i lo -j ACCEPT
+#-A INPUT ! -i lo -d 127.0.0.0/8 -j REJECT
+
+# Accepts all established inbound connections
+#-A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allows all outbound traffic
+# You could modify this to only allow certain traffic
+#-A OUTPUT -j ACCEPT
+
+# Allows SSH connections
+# The --dport number is the same as in /etc/ssh/sshd_config
+#-A INPUT -p tcp -m state --state NEW --dport 22 -j ACCEPT
+
+# log iptables denied calls (access via 'dmesg' command)
+#-A INPUT -m limit --limit 5/min -j LOG --log-prefix "iptables denied: " --log-level 7
+
+# Reject all other inbound - default deny unless explicitly allowed policy:
+#-A INPUT -j REJECT
+#-A FORWARD -j REJECT
+
+#COMMIT
+
+# Apply changes
+#sudo /usr/sbin/iptables-apply /etc/iptables/rules.v4
+
+# Check new rules
+#sudo /sbin/iptables -L
+
+
+
+# ================================================
+# SECURITY - AUTOMATED UPDATES
+# ================================================
+#https://wiki.debian.org/UnattendedUpgrades
+#sudo apt-get -y install unattended-upgrades apt-listchanges
+
+
+
+
+# ================================================
+# SECURITY - LOGWATCH
+# ================================================
+#sudo apt-get install logwatch
+
+# Adjust config to needs
+#/usr/share/logwatch/default.conf/logwatch.conf
+
+# By def logwatch will mail root account, alter this by editing /etc/aliases
+# Point to your e-mail address
+#/etc/aliases
+
+#sudo /usr/bin/newaliases
+
+
+
+# ================================================
+# NETWORK SETUP - NETWORK CONFIGURATION
 # ================================================
 HWADDR=`ifconfig enxb827eb3306a3 | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
 IPADDR=`ifconfig enxb827eb3306a3 | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
@@ -187,6 +265,8 @@ hosts_file="/etc/hosts"
 dns_file="/etc/resolv.conf"
 interfaces_file="/etc/network/interfaces"
 
+
+# TODO
 set_hostname(){
     # set_hostname HOSTNAME DOMAINNAME
     sudo bash -c "echo '$1' > $hostname_file"
@@ -198,6 +278,7 @@ set_hostname(){
     sudo bash -c "echo 'ff02::2         ip6-allrouters' >> $hosts_file"
 }
 
+# TODO
 set_static_net(){
     # set_static_net IP SUBNET GATEWAY
     sudo bash -c "echo 'auto lo' > $interfaces_file"
@@ -210,6 +291,7 @@ set_static_net(){
     sudo bash -c "echo '  gateway $3' >> $interfaces_file"
 }
 
+# TODO
 set_dns_domain(){
     # set_dns_domain DNSSERVER DOMAINNAME
     if [ -z "$2" ] || [ "$2" = "adv.ru" ]; then
@@ -222,6 +304,7 @@ set_dns_domain(){
     sudo bash -c "echo 'nameserver $1' >> $dns_file"
 }
 
+# TODO
 setup_network() {
   while [ -z $result ] || [ $result == "1" ] ; do
 
@@ -240,12 +323,12 @@ setup_network() {
       domain=$(whiptail --backtitle "Network Setup" --inputbox "Domain Name" 10 60 "mydomain.ext" 3>&1 1>&2 2>&3)
       whiptail --backtitle "Network Setup" --title "Are the settings correct?" --yesno "\n IP Adress: $ipaddr \n Netmask: $netmask \n Gateway: $gateway \n DNS: $dns1 \n Domain: $domain \n" 18 78 3>&1 1>&2 2>&3
       result=$?
+      set_hostname $hostn $domain
+      set_static_net $ipaddr $netmask $gateway
+      set_dns_domain $dns1 $domain
   done
 }
-#setup_network
-#set_hostname $hostn $domain
-#set_static_net $ipaddr $netmask $gateway
-#set_dns_domain $dns1 $domain
+
 
 
 
@@ -253,7 +336,7 @@ setup_network() {
 # DHCP SERVER (TODO)
 # ================================================
 install_dhcp_server() {
-  sudo apt-get install isc-dhcp-server
+  sudo apt-get -y install isc-dhcp-server
 }
 
 setup_dhcp_server() {
@@ -278,9 +361,8 @@ setup_dhcp_server() {
       option domain-name-servers 192.168.1.254, 8.8.8.8;
   }' | sudo tee -a /etc/dhcp/dhcpd.conf
 
-  #sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
+  sudo sed -i '21s/.*/INTERFACES="enxb827eb3306a3"/' /etc/dhcp/dhcpd.conf
 }
-#setup_dhcp_server
 
 
 # ================================================
@@ -303,7 +385,7 @@ install_dc_req() {
 setup_samba() {
   sudo apt-get install samba smbclient
   sudo mv /etc/samba/smb.conf /etc/samba/smb.orig
-  #sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
+  sudo samba-tool domain provision --option="interfaces=lo enxb827eb3306a3" --option="bind  interfaces only=yes" --use-rfc2307 --interactive
 }
 
 
@@ -382,18 +464,44 @@ do_securing_ssh_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) disable_ssh_root ;;
-        2) disable_pam ;;
+        1) set_hostname ;;
+        2) setup_network ;;
         3) clear_authorized_keys ;;
         4) add_authorized_key ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
-      do_user_accounts_menu
+      do_securing_ssh_menu
+    fi
+}
+
+do_networking_menu() {
+  menu=$(whiptail --title "$TITLE" --menu "Networking" --ok-button Select --cancel-button Back 20 78 10 \
+      "1" "Hostname" \
+      "2" "Static IP configuration" \
+      "3" "DNS domain" \
+      "4" "DHCP server configuration" \
+      3>&1 1>&2 2>&3)
+
+    exitstatus=$?
+    if [ ${exitstatus} = 1 ]; then
+      return 0
+    elif [ ${exitstatus} = 0 ]; then
+      case ${menu} in
+        1) set_hostname ;;
+        2) setup_network ;;
+        3) set_dns_domain ;;
+        4) setup_dhcp_server ;;
+      esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
+      do_securing_ssh_menu
     fi
 }
 
 while true; do
   menu=$(whiptail --title "$TITLE" --menu "Perform these procedures in a chronological order." --ok-button Select --cancel-button Quit 20 78 10 \
     "1" "Security" \
+    "2" "Network" \
+    "3" "Install DC Requirements" \
+    "4" "Setup Samba" \
+    "5" "Setup Kerberos" \
     3>&1 1>&2 2>&3)
 
   exitstatus=$?
@@ -402,6 +510,10 @@ while true; do
   elif [ ${exitstatus} = 0 ]; then
     case ${menu} in
       1) do_security_menu ;;
+      2) do_network_menu ;;
+      3) install_dc_req ;;
+      4) setup_samba ;;
+      5) setup_kerberos ;;
     esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
   else
     exit 1
