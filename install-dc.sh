@@ -275,8 +275,8 @@ add_authorized_key() {
 # ================================================
 # NETWORK SETUP - NETWORK CONFIGURATION
 # ================================================
-INTERFACE='ifconfig | head -n1 | awk $"{print $1}" | cut -d ":" -f 1'
-HWADDR=`ifconfig $INTERFACE | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
+INTERFACE=`ifconfig | head -n1 | awk $"{print $1}" | cut -d ":" -f 1`
+HWADDR=`ifconfig ${INTERFACE} | grep HW | awk ' BEGIN { FS = " " } ; { print $5 } ; '`
 IPADDR=`ifconfig $INTERFACE | grep "inet addr:" | awk $'{print $2}' | cut -d ":" -f 2`
 ISDHCP=`grep dhcp /etc/network/interfaces | awk $'{print $4}'`
 GW=`ip route list | grep default | awk $'{print $3}'`
