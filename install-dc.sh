@@ -92,6 +92,7 @@ do_update() {
 # ================================================
 # SECURITY - USER ACCOUNTS
 # ================================================
+# TODO Toggle back when root has been enabled
 enable_root() {
   backupFile /etc/ssh/sshd_config
   displayMessage "Enable root" "You need to enable root to secure it's password afterwards."
@@ -119,9 +120,11 @@ set_password() {
   echo -e "$passwd1\n$passwd2" | sudo passwd $1
 }
 
+# TODO Whiplash prompt for password on user creation
+# TODO Logout on creation instead of reboot
 create_sudo_user() {
   displayMessage "Create new sudo user" "Creating a new sudo user prevents predictable attacks using the default pi account."
-  user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "dcpi" 3>&1 1>&2 2>&3)
+  user=$(whiptail --backtitle "Create new sudo user" --inputbox "Username" 10 60 "pdcpi" 3>&1 1>&2 2>&3)
   if whiptail --yesno "Are you sure you want to create the $user user account?" 0 0; then
     sudo adduser $user
     sudo usermod -aG sudo $user
@@ -477,8 +480,8 @@ do_securing_ssh_menu() {
       return 0
     elif [ ${exitstatus} = 0 ]; then
       case ${menu} in
-        1) set_hostname ;;
-        2) setup_network ;;
+        1) disable_ssh_root ;;
+        2) disable_pam ;;
         3) clear_authorized_keys ;;
         4) add_authorized_key ;;
       esac || whiptail --msgbox "There was an error running option $menu" 20 60 1
